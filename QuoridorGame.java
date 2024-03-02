@@ -2,7 +2,7 @@ import java.util.Arrays;
 
 public class QuoridorGame extends Game{
 
-    public final String gameName = "Quoridor";
+    public final String gameName = "Qoridor";
     private Team[] teams;
     private BoardWithEdges board;
     private Difficulty difficulty = Difficulty.EASY; //Since this is a PvP game, it has no impact on the game.
@@ -17,7 +17,7 @@ public class QuoridorGame extends Game{
 
         this.teams = ConsoleController.createTeams();
 
-        System.out.println("Great! Lets now get the board dimensions, here we are referring to the # of boxes that can be drawn.");
+        System.out.println("Great! Lets now get the board dimensions, here we are referring to the # of board tiles.");
 
         createValidBoardState(Difficulty.EASY); // GENERIC DIFFICULTY, DOES NOT IMPACT
 
