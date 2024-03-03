@@ -201,5 +201,15 @@ public class ConsoleController {
             previousScore = entry.getValue(); // Update previousScore for next iteration comparison
         }
     }
+
+    public static Queue<Player> loadPlayerQueue(Team[] teams){
+        Queue<Player> queue = new LinkedList<>();
+        for(int i = 0; i < teams[0].getPlayers().length; i++){
+            for(int j = 0; j < teams.length; j++){
+                queue.add(teams[j].getPlayers()[i]);
+            }
+        }
+        return queue;
+    }
     
 }

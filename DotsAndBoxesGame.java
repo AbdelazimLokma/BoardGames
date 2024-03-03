@@ -64,11 +64,11 @@ public class DotsAndBoxesGame extends Game{
     void start() {
         boolean winCon = true;
         boolean saySomething = true;
-        Queue<Player> queue = loadPlayerQueue();
+        Queue<Player> queue = ConsoleController.loadPlayerQueue(teams);
         Tile [] flattenedBoard = board.flattenBoard();
         boolean playerScoredPoint = false;
         Player currPlayer = null;
-        while (winCon){
+        while (!checkWinCondition()){
             // take player action
             if (!playerScoredPoint){
                 currPlayer = queue.poll();  //get a new player if a box was not drawn. keep the current player if they scored a point
@@ -86,11 +86,11 @@ public class DotsAndBoxesGame extends Game{
                 cellInput = Input.getIntInput(1, flattenedBoard.length, "Please choose the desired cell:");
                 cellCoord = board.getTileCoords(flattenedBoard[cellInput-1]);
                 edges = board.getUndrawnBoxEdges(cellCoord[0], cellCoord[1]);
-                if (edges.size() == 0){
+                if (edges.isEmpty()){
                     System.out.println("ERROR - Please choose a cell corresponding to an incomplete box.");
                 }
             }
-            while(edges.size() == 0);
+            while(edges.isEmpty());
 
             List<String> edgeNames = board.getUndrawnBoxEdgeNames(cellCoord[0], cellCoord[1]);
 
@@ -119,11 +119,7 @@ public class DotsAndBoxesGame extends Game{
 
             teams[currPlayer.getTeamNum()].incrementMovesMade();
 
-            // check win condition
-            if (checkWinCondition()) {
-                winCon = true;
-                break;
-            }
+
             render();
             // repeat
 
@@ -162,18 +158,9 @@ public class DotsAndBoxesGame extends Game{
     @Override
     void render() {
         board.renderBoard();
-        System.out.println("");
+        System.out.println();
     }
 
-    private Queue<Player> loadPlayerQueue(){
-        Queue<Player> queue = new LinkedList<>();
-        for(int i = 0; i < teams[0].getPlayers().length; i++){
-            for(int j = 0; j < teams.length; j++){
-                queue.add(teams[j].getPlayers()[i]);
-            }
-        }
-        return queue;
-    }
 
     @Override
     int getNumPlayers() {

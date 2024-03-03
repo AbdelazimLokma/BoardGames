@@ -1,8 +1,10 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
 /**
- * Extends the Board class to implement the specific logic and layout for a Dots
- * and Boxes game, including the management of vertical and horizontal edges.
+ * Extends the Board class to implement the specific logic and layout for any games with edges,
+ * including the management of vertical and horizontal edges.
  * It provides functionalities to initialize the board edges, check if a box is completed,
  * render the board state, and determine if the entire board is filled. Methods are included to
  * get the edges around a box, identify undrawn edges, and assess if adjacent boxes are completed
@@ -100,28 +102,17 @@ public class BoardWithEdges extends Board{
     public void renderRowHorizontalLine(int row) {
         for (int col = 0; col < super.getWidth(); col++){ //printing top line of each row
             System.out.print("+");
-            if (getBoxEdges(row, col)[0].isDrawn){
-                System.out.print("----");
+
+            if (row == super.getHeight() && getBoxEdges(row-1, col)[2].isDrawn){
+                System.out.print("-----");
+            }else if (  row != super.getHeight() && getBoxEdges(row, col)[0].isDrawn){
+                System.out.print("-----");
             }
             else{
-                System.out.print("    ");
+                System.out.print("     ");
             }
         }
         System.out.print("+");
-
-        if (row == super.getHeight() -1){
-            renderRowVerticalLines(row);
-            for (int col = 0; col < super.getWidth(); col++){ //printing bottom line of board
-                System.out.print("+");
-                if (getBoxEdges(row, col)[2].isDrawn){
-                    System.out.print("----");
-                }
-                else{
-                    System.out.print("    ");
-                }
-            }
-            System.out.print("+");
-        }
 
     }
 
@@ -131,12 +122,65 @@ public class BoardWithEdges extends Board{
             for (int col = 0; col <  super.getWidth(); col++ ){
                 if (getBoxEdges(row, col)[3].isDrawn){
                     String tileValue = tiles[row][col].getPiece().toString();
-                    line += "|  " + tileValue + " ";
+
+                    if (Integer.parseInt(tileValue) < 10){
+                        line += "|   " + tileValue + "  ";
+                    }
+                    else{
+                        line += "|   " + tileValue + " ";
+                    }
 
                 }
                 else{
                     String tileValue = tiles[row][col].getPiece().toString();
-                    line += "   "+ tileValue + " ";
+                    if (Integer.parseInt(tileValue) < 10){
+                        line += "   " + tileValue + "  ";
+                    }
+                    else{
+                        line += "   " + tileValue + " ";
+                    }
+                }
+                if (col == super.getWidth() - 1 && getBoxEdges(row, col)[1].isDrawn){
+                    line += "|";
+                }
+            }
+            System.out.println("\n"+line);
+        }
+    }
+
+    public void renderRowVerticalLines(int row, Integer[] pawnPositions) {
+        for(int i = 0; i < 1; i++){
+            String line = "";
+            for (int col = 0; col <  super.getWidth(); col++ ){
+                if (getBoxEdges(row, col)[3].isDrawn){
+                    String tileValue = tiles[row][col].getPiece().toString();
+                    String tileVal = tileValue;
+                    if (Arrays.asList(pawnPositions).contains(Integer.parseInt(tileValue))){
+                        tileValue = Utility.colorString(tileValue, Utility.findIndex(pawnPositions, Integer.parseInt(tileValue)));
+                    }
+
+                    if (Integer.parseInt(tileVal) < 10){
+                        line += "|   " + tileValue + "  ";
+                    }
+                    else{
+                        line += "|   " + tileValue + " ";
+                    }
+
+                }
+                else{
+                    String tileValue = tiles[row][col].getPiece().toString();
+                    String tileVal = tileValue;
+
+                    if (Arrays.asList(pawnPositions).contains(Integer.parseInt(tileValue))){
+                        tileValue = Utility.colorString( tileValue, Utility.findIndex(pawnPositions, Integer.parseInt(tileValue)) );
+                    }
+
+                    if (Integer.parseInt(tileVal) < 10){
+                        line += "   " + tileValue + "  ";
+                    }
+                    else{
+                        line += "   " + tileValue + " ";
+                    }
                 }
                 if (col == super.getWidth() - 1 && getBoxEdges(row, col)[1].isDrawn){
                     line += "|";
@@ -146,12 +190,22 @@ public class BoardWithEdges extends Board{
         }
     }
     @Override
-    public void renderBoard() { //TODO:
-        for(int row = 0;  row < super.getHeight()-1; row++){
+    public void renderBoard() {
+        for(int row = 0;  row < super.getHeight(); row++){
             renderRowHorizontalLine(row);
             renderRowVerticalLines(row);
         }
-        renderRowHorizontalLine(super.getHeight()-1);
+        renderRowHorizontalLine(super.getHeight());
+
+
+    }
+
+    public void renderBoard(Integer[] pawnPositions) {
+        for(int row = 0;  row < super.getHeight(); row++){
+            renderRowHorizontalLine(row);
+            renderRowVerticalLines(row, pawnPositions);
+        }
+        renderRowHorizontalLine(super.getHeight());
 
 
     }
