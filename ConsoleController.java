@@ -211,5 +211,35 @@ public class ConsoleController {
         }
         return queue;
     }
+
+    public static Queue<Player> loadPlayerQueue(Team[] teams, int startingTeamID){
+        Queue<Player> queue = new LinkedList<>();
+        for (int i = 0; i < teams[0].getPlayers().length; i++) {
+            for (int j = 0; j < teams.length; j++) {
+                int currentTeamIndex = (startingTeamID + j) % teams.length;
+                queue.add(teams[currentTeamIndex].getPlayers()[i]);
+            }
+        }
+        return queue;
+    }
+
+    public static String[] getTeamInfo(int teamID, Team[] teams){
+        String color;
+        if(teamID == 0){
+            color = "Red";
+        }
+        else if (teamID == 1){
+            color = "Green";
+        }
+        else if (teamID == 2){
+            color = "Blue";
+        }
+        else{
+            color = "Yellow";
+        }
+
+        return new String[] {color, teams[teamID].getTeamName()};
+
+    }
     
 }

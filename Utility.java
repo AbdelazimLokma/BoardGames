@@ -6,6 +6,8 @@ public class Utility {
     public static final String ANSI_YELLOW = "\u001B[33m";
     public static final String ANSI_RESET = "\u001B[0m";
 
+    public static final String ANSI_MAGENTA = "\u001B[35m";
+
 
     public static String colorString(String input, Integer colorCode) {
         String coloredString;
@@ -22,6 +24,9 @@ public class Utility {
                 break;
             case 3:
                 coloredString = ANSI_YELLOW + input + ANSI_RESET;
+                break;
+            case -1:
+                coloredString = ANSI_MAGENTA + input + ANSI_RESET;
                 break;
             default:
                 coloredString = input;
@@ -51,6 +56,21 @@ public class Utility {
         }
         return -1;
     }
+
+
+    public static int convert2Dto1D(int row, int column, int width) {
+        return (row * width) + column + 1;
+    }
+    public static int[] convert1Dto2D(int index, int width) {
+        int zeroBasedIndex = index - 1;
+
+        int row = zeroBasedIndex / width;
+        int column = zeroBasedIndex % width;
+
+        return new int[]{row, column};
+    }
+
+
 
 
 }

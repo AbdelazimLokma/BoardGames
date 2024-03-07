@@ -50,8 +50,7 @@ public class BoardWithEdges extends Board{
         Edge bottom = horizontalEdges[row + 1][col];
         Edge left = verticalEdges[row][col];
         Edge right = verticalEdges[row][col + 1];
-        Edge[] edges = {top, right, bottom, left};
-        return edges;
+        return new Edge[] {top, right, bottom, left};
     }
 
     public boolean checkIfAdjacentBoxCompleted(int row, int col, Edge e){
@@ -96,6 +95,11 @@ public class BoardWithEdges extends Board{
             }
         }
         return toRet;
+    }
+
+    public String getEdgeName(int i){
+        String[] names = {"up", "right", "down", "left"};
+        return names[i];
     }
 
 
@@ -148,7 +152,7 @@ public class BoardWithEdges extends Board{
         }
     }
 
-    public void renderRowVerticalLines(int row, Integer[] pawnPositions) {
+    public void renderRowVerticalLines(int row, Integer[] pawnPositions, List<Integer> validTiles) {
         for(int i = 0; i < 1; i++){
             String line = "";
             for (int col = 0; col <  super.getWidth(); col++ ){
@@ -157,13 +161,15 @@ public class BoardWithEdges extends Board{
                     String tileVal = tileValue;
                     if (Arrays.asList(pawnPositions).contains(Integer.parseInt(tileValue))){
                         tileValue = Utility.colorString(tileValue, Utility.findIndex(pawnPositions, Integer.parseInt(tileValue)));
+                    } else if (validTiles!= null && validTiles.contains(Integer.parseInt(tileValue))) {
+                        tileValue = Utility.colorString(tileValue, -1);
                     }
 
                     if (Integer.parseInt(tileVal) < 10){
-                        line += "|   " + tileValue + "  ";
+                        line += "|  " + tileValue + "  ";
                     }
                     else{
-                        line += "|   " + tileValue + " ";
+                        line += "|  " + tileValue + " ";
                     }
 
                 }
@@ -173,6 +179,9 @@ public class BoardWithEdges extends Board{
 
                     if (Arrays.asList(pawnPositions).contains(Integer.parseInt(tileValue))){
                         tileValue = Utility.colorString( tileValue, Utility.findIndex(pawnPositions, Integer.parseInt(tileValue)) );
+                    }
+                    else if (validTiles!= null && validTiles.contains(Integer.parseInt(tileValue))) {
+                        tileValue = Utility.colorString(tileValue, -1);
                     }
 
                     if (Integer.parseInt(tileVal) < 10){
@@ -200,10 +209,10 @@ public class BoardWithEdges extends Board{
 
     }
 
-    public void renderBoard(Integer[] pawnPositions) {
+    public void renderBoard(Integer[] pawnPositions,  List<Integer> validTiles) {
         for(int row = 0;  row < super.getHeight(); row++){
             renderRowHorizontalLine(row);
-            renderRowVerticalLines(row, pawnPositions);
+            renderRowVerticalLines(row, pawnPositions, validTiles);
         }
         renderRowHorizontalLine(super.getHeight());
 
@@ -230,4 +239,54 @@ public class BoardWithEdges extends Board{
         }
         return true;
     }
+
+
+
+    public boolean canReachTarget(int x, int y, int targetRow, int targetCol) {
+        // Check if starting point is outside the grid
+        if (x < 0 || x >= super.getHeight() || y < 0 || y >= super.getWidth()) {
+            return false;
+        }
+
+        // Initialize a visited array to keep track of visited tiles
+        boolean[][] visited = new boolean[super.getHeight()][super.getWidth()];
+        return dfs(x, y, targetRow, targetCol, visited);
+    }
+
+    private boolean dfs(int x, int y, int targetRow, int targetCol, boolean[][] visited) {
+        // Check if current position is the target or outside the grid
+        if (x == targetRow || y == targetCol) {
+            return true;
+        }
+        if (x < 0 || x >= super.getHeight() || y < 0 || y >= super.getWidth() || visited[x][y]) {
+            return false;
+        }
+
+        // Mark the current tile as visited
+        visited[x][y] = true;
+
+        // Up
+        if (x > 0 && !verticalEdges[x-1][y].isDrawn && dfs(x - 1, y, targetRow, targetCol, visited)) {
+            return true;
+        }
+
+        // Down
+        if (x < super.getHeight() - 1 && !verticalEdges[x][y].isDrawn && dfs(x + 1, y, targetRow, targetCol, visited)) {
+            return true;
+        }
+
+        // Left
+        if (y > 0 && !horizontalEdges[x][y-1].isDrawn && dfs(x, y - 1, targetRow, targetCol, visited)) {
+            return true;
+        }
+
+        // Right
+        if (y < super.getWidth() - 1 && !horizontalEdges[x][y].isDrawn && dfs(x, y + 1, targetRow, targetCol, visited)) {
+            return true;
+        }
+
+        // If no path is found
+        return false;
+    }
+
 }
