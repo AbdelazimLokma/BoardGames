@@ -1,3 +1,5 @@
+import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 /**
  * Handles user input from the console for various types of data, including integers and strings, with
@@ -34,7 +36,41 @@ public class Input {
                 }
             }
             else if(inputIsQuit(scanner.next())){
-                if (prompt == "main menu"){
+                if (Objects.equals(prompt, "main menu")){
+                    System.out.println("You've decided to terminate the program, exiting game launcher, goodbye!");
+                    return -1;
+                }
+                else{
+                    System.out.println("You've decided to quit, returning you to the game menu, goodbye!");
+                    ConsoleController.chooseGame();
+                }
+            }
+            else{
+                System.out.println("Input is invalid. Please enter a number:");
+            }
+        }
+        return choice;
+    }
+
+    public static int getIntInput(List<Integer> numSet, String prompt){
+
+        if (prompt != "main menu"){
+            System.out.println(prompt);
+        }
+        int choice = 0;
+        boolean cond = true;
+        while (cond){
+            if (scanner.hasNextInt()){
+                choice = scanner.nextInt();
+                if (!numSet.contains(choice) ) {
+                    System.out.println("Invalid number. Please enter a number from the following: " + numSet + ".");
+                }
+                else{
+                    cond = false;
+                }
+            }
+            else if(inputIsQuit(scanner.next())){
+                if (Objects.equals(prompt, "main menu")){
                     System.out.println("You've decided to terminate the program, exiting game launcher, goodbye!");
                     return -1;
                 }

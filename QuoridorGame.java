@@ -1,6 +1,4 @@
-import java.sql.SQLOutput;
 import java.util.*;
-import java.awt.Color;
 
 public class QuoridorGame extends Game{
 
@@ -42,6 +40,8 @@ public class QuoridorGame extends Game{
             teamPawns.add(new Piece<>(i));
             setPawnStartingPosition(i);
         }
+
+        pawnPositions[1] = 5;
 
         super.hasDifficulty = false;
 
@@ -368,12 +368,11 @@ public class QuoridorGame extends Game{
 
     private void movePawn(Player p){
         int pawnPos = pawnPositions[p.getTeamNum()];
-        int[] pawnCoord = Utility.convert1Dto2D(pawnPos, board.getWidth());
         List<Integer> validMoveTiles = checkIfBasicMovesPossible(pawnPos);
         System.out.println("The board will be displayed with valid tiles in " + Utility.colorString("magenta.", -1)
                 +"\nPlease choose from these tiles.");
         render(validMoveTiles);
-        int choice = Input.getIntInput(Collections.min(validMoveTiles), Collections.max(validMoveTiles), "Please enter the tile # you want to move to");
+        int choice = Input.getIntInput(validMoveTiles, "Please enter the tile # you want to move to");
         pawnPositions[p.getTeamNum()] = choice;
         System.out.println("Your pawn has succesfully moved to tile: "+ choice);
     }
@@ -384,26 +383,56 @@ public class QuoridorGame extends Game{
         int[] pawnCoord = Utility.convert1Dto2D(pawnPos, board.getWidth());
         int[][] pawnPositions2D = get2DPawnPositions();
         Edge[] edges = board.getBoxEdges(pawnCoord[0], pawnCoord[1]);
-
-        if (pawnCoord[0] != 0 && !edges[0].isDrawn && checkPawnAdjacency(pawnCoord, pawnPositions2D) != 0){ //checking if above tile is reachable, could be out of bounds, blocked by wall or enemy
+        List<int[]> adjPawnCoordDir = getAdjPawnCoordsAndDirection(pawnCoord, pawnPositions2D);
+        if (pawnCoord[0] != 0 && !edges[0].isDrawn && !isDirectionBlockedByPawn(0, adjPawnCoordDir)){ //checking if above tile is reachable, could be out of bounds, blocked by wall or enemy
             int tileNum = Utility.convert2Dto1D(pawnCoord[0]-1, pawnCoord[1], board.getWidth());
             validMoveTiles.add(tileNum);
         }
-        if (pawnCoord[0] != board.getHeight()-1 && !edges[2].isDrawn && checkPawnAdjacency(pawnCoord, pawnPositions2D) != 2){ //checking if below tile is reachable, could be out of bounds, blocked by wall or enemy
+        if (pawnCoord[0] != board.getHeight()-1 && !edges[2].isDrawn && !isDirectionBlockedByPawn(2, adjPawnCoordDir)){ //checking if below tile is reachable, could be out of bounds, blocked by wall or enemy
             int tileNum = Utility.convert2Dto1D(pawnCoord[0]+1, pawnCoord[1], board.getWidth());
             validMoveTiles.add(tileNum);
         }
 
-        if (pawnCoord[1] != 0 && !edges[3].isDrawn && checkPawnAdjacency(pawnCoord, pawnPositions2D) != 3){ //checking if left tile is reachable, could be out of bounds, blocked by wall or enemy
+        if (pawnCoord[1] != 0 && !edges[3].isDrawn && !isDirectionBlockedByPawn(3, adjPawnCoordDir)){ //checking if left tile is reachable, could be out of bounds, blocked by wall or enemy
             int tileNum = Utility.convert2Dto1D(pawnCoord[0], pawnCoord[1]-1, board.getWidth());
             validMoveTiles.add(tileNum);
         }
-        if (pawnCoord[1] != board.getWidth()-1 && !edges[1].isDrawn && checkPawnAdjacency(pawnCoord, pawnPositions2D) != 1){ //checking if below tile is reachable, could be out of bounds, blocked by wall or enemy
+        if (pawnCoord[1] != board.getWidth()-1 && !edges[1].isDrawn && !isDirectionBlockedByPawn(1, adjPawnCoordDir)){ //checking if below tile is reachable, could be out of bounds, blocked by wall or enemy
             int tileNum = Utility.convert2Dto1D(pawnCoord[0], pawnCoord[1]+1, board.getWidth());
             validMoveTiles.add(tileNum);
         }
 
+        //call getSpecialValidTiles
+        // append validMoveTiles from this method, to validMoveTiles from getSpecialValidTiles (removing any duplicates)
+
         return validMoveTiles;
+    }
+
+    private List<Integer> getSpecialValidTiles(List<int[]> adjPawnCoordDir, int otherPawnInd, int targetPawnInd){
+//        List<Integer> validMoveTiles = new ArrayList<>();
+//        int[] pawnCoord = Utility.convert1Dto2D(pawnPos, board.getWidth());
+//        int[][] pawnPositions2D = get2DPawnPositions();
+//        Edge[] edges = board.getBoxEdges(pawnCoord[0], pawnCoord[1]);
+//        List<int[]> adjPawnCoordDir = getAdjPawnCoordsAndDirection(pawnCoord, pawnPositions2D);
+//
+//        if (pawnCoord[0] != 0 && !edges[0].isDrawn && !isDirectionBlockedByPawn(0, adjPawnCoordDir)){ //checking if above tile is reachable, could be out of bounds, blocked by wall or enemy
+//            int tileNum = Utility.convert2Dto1D(pawnCoord[0]-1, pawnCoord[1], board.getWidth());
+//            validMoveTiles.add(tileNum);
+//        }
+//        if (pawnCoord[0] != board.getHeight()-1 && !edges[2].isDrawn && !isDirectionBlockedByPawn(2, adjPawnCoordDir)){ //checking if below tile is reachable, could be out of bounds, blocked by wall or enemy
+//            int tileNum = Utility.convert2Dto1D(pawnCoord[0]+1, pawnCoord[1], board.getWidth());
+//            validMoveTiles.add(tileNum);
+//        }
+//
+//        if (pawnCoord[1] != 0 && !edges[3].isDrawn && !isDirectionBlockedByPawn(3, adjPawnCoordDir)){ //checking if left tile is reachable, could be out of bounds, blocked by wall or enemy
+//            int tileNum = Utility.convert2Dto1D(pawnCoord[0], pawnCoord[1]-1, board.getWidth());
+//            validMoveTiles.add(tileNum);
+//        }
+//        if (pawnCoord[1] != board.getWidth()-1 && !edges[1].isDrawn && !isDirectionBlockedByPawn(1, adjPawnCoordDir)){ //checking if below tile is reachable, could be out of bounds, blocked by wall or enemy
+//            int tileNum = Utility.convert2Dto1D(pawnCoord[0], pawnCoord[1]+1, board.getWidth());
+//            validMoveTiles.add(tileNum);
+//        }
+        return null;
     }
 
     private int[][] get2DPawnPositions (){
@@ -414,35 +443,54 @@ public class QuoridorGame extends Game{
         return positions;
     }
 
-    public static int checkPawnAdjacency(int[] targetPawnCoord, int[][] OtherPawnCoords) {
+    private List<int[]> getAdjPawnCoordsAndDirection(int[] targetPawnCoord, int[][] OtherPawnCoords) {
+        List<int[]> adjPawnCoords = new ArrayList<>();
         for (int[] coord : OtherPawnCoords) {
             // Skip comparison with itself
             if (coord[0] == targetPawnCoord[0] && coord[1] == targetPawnCoord[1]) {
                 continue;
             }
 
-            // Check above
+            // Check left
             if (targetPawnCoord[0] == coord[0] && targetPawnCoord[1] - 1 == coord[1]) {
-                return 0; // coord is above targetCoord
+                // coord is above targetCoord
+                adjPawnCoords.add(new int[] {coord[0],  coord[1], 3});
+            }
+            // Check below
+            if (targetPawnCoord[0] + 1 == coord[0] && targetPawnCoord[1] == coord[1]) {
+//                return 1; // coord is to the right of targetCoord
+                adjPawnCoords.add(new int[] {coord[0],  coord[1], 2});
             }
             // Check right
-            if (targetPawnCoord[0] + 1 == coord[0] && targetPawnCoord[1] == coord[1]) {
-                return 1; // coord is to the right of targetCoord
-            }
-            // Check bottom
             if (targetPawnCoord[0] == coord[0] && targetPawnCoord[1] + 1 == coord[1]) {
-                return 2; // coord is below targetCoord
+               // coord is below targetCoord
+                adjPawnCoords.add(new int[] {coord[0],  coord[1], 1});
             }
-            // Check left
+            // Check above
             if (targetPawnCoord[0] - 1 == coord[0] && targetPawnCoord[1] == coord[1]) {
-                return 3; // coord is to the left of targetCoord
+                 // coord is to the left of targetCoord
+                adjPawnCoords.add(new int[] {coord[0],  coord[1], 0});
             }
         }
         // No directly adjacent coordinate found
-        return -1;
+        if (adjPawnCoords.isEmpty()){
+            return null;
+        }
+
+       return adjPawnCoords;
     }
 
-
+private boolean isDirectionBlockedByPawn (int dir, List<int[]> adjPawnCoords){
+    if (adjPawnCoords == null){
+        return false;
+    }
+    for (int[] coords : adjPawnCoords) {
+        if (coords[2] == dir) {
+           return true;
+        }
+    }
+    return false;
+}
 
 
 
