@@ -41,8 +41,6 @@ public class QuoridorGame extends Game{
             setPawnStartingPosition(i);
         }
 
-        pawnPositions[1] = 5;
-
         super.hasDifficulty = false;
 
         render();
@@ -253,7 +251,7 @@ public class QuoridorGame extends Game{
         }
     }
 
-    private int[] getValidEdges(int x, int y){ //TODO: too much repeated code, function can be shorted w/ 2 helpers
+    private int[] getValidEdges(int x, int y){ //TODO: too much repeated code, function can be shortened w/ 2 helpers
 
         List<Edge> undrawnEdges =  board.getUndrawnBoxEdges(x,y);
         int[] validEdges =  new int[4];
@@ -368,7 +366,7 @@ public class QuoridorGame extends Game{
 
     private void movePawn(Player p){
         int pawnPos = pawnPositions[p.getTeamNum()];
-        List<Integer> validMoveTiles = checkIfBasicMovesPossible(pawnPos);
+        List<Integer> validMoveTiles = checkIfBasicMovesPossible(pawnPos, p.getTeamNum());
         System.out.println("The board will be displayed with valid tiles in " + Utility.colorString("magenta.", -1)
                 +"\nPlease choose from these tiles.");
         render(validMoveTiles);
@@ -377,7 +375,7 @@ public class QuoridorGame extends Game{
         System.out.println("Your pawn has succesfully moved to tile: "+ choice);
     }
 
-    private List<Integer> checkIfBasicMovesPossible(int pawnPos){
+    private List<Integer> checkIfBasicMovesPossible(int pawnPos, int teamNum){
         List<Integer> validMoveTiles = new ArrayList<>();
         //first check if movement options are out of bounds
         int[] pawnCoord = Utility.convert1Dto2D(pawnPos, board.getWidth());
@@ -402,38 +400,69 @@ public class QuoridorGame extends Game{
             validMoveTiles.add(tileNum);
         }
 
-        //call getSpecialValidTiles
-        // append validMoveTiles from this method, to validMoveTiles from getSpecialValidTiles (removing any duplicates)
+        List<Integer> specialMoves = new ArrayList<>();
+
+        if (adjPawnCoordDir != null) {
+            specialMoves = getSpecialValidTiles(adjPawnCoordDir, pawnPos, teamNum);
+        }
+
+        for (Integer move : specialMoves) {
+            if (!validMoveTiles.contains(move)) {
+                validMoveTiles.add(move);
+            }
+        }
 
         return validMoveTiles;
     }
 
-    private List<Integer> getSpecialValidTiles(List<int[]> adjPawnCoordDir, int otherPawnInd, int targetPawnInd){
-//        List<Integer> validMoveTiles = new ArrayList<>();
-//        int[] pawnCoord = Utility.convert1Dto2D(pawnPos, board.getWidth());
-//        int[][] pawnPositions2D = get2DPawnPositions();
-//        Edge[] edges = board.getBoxEdges(pawnCoord[0], pawnCoord[1]);
-//        List<int[]> adjPawnCoordDir = getAdjPawnCoordsAndDirection(pawnCoord, pawnPositions2D);
-//
-//        if (pawnCoord[0] != 0 && !edges[0].isDrawn && !isDirectionBlockedByPawn(0, adjPawnCoordDir)){ //checking if above tile is reachable, could be out of bounds, blocked by wall or enemy
-//            int tileNum = Utility.convert2Dto1D(pawnCoord[0]-1, pawnCoord[1], board.getWidth());
-//            validMoveTiles.add(tileNum);
-//        }
-//        if (pawnCoord[0] != board.getHeight()-1 && !edges[2].isDrawn && !isDirectionBlockedByPawn(2, adjPawnCoordDir)){ //checking if below tile is reachable, could be out of bounds, blocked by wall or enemy
-//            int tileNum = Utility.convert2Dto1D(pawnCoord[0]+1, pawnCoord[1], board.getWidth());
-//            validMoveTiles.add(tileNum);
-//        }
-//
-//        if (pawnCoord[1] != 0 && !edges[3].isDrawn && !isDirectionBlockedByPawn(3, adjPawnCoordDir)){ //checking if left tile is reachable, could be out of bounds, blocked by wall or enemy
-//            int tileNum = Utility.convert2Dto1D(pawnCoord[0], pawnCoord[1]-1, board.getWidth());
-//            validMoveTiles.add(tileNum);
-//        }
-//        if (pawnCoord[1] != board.getWidth()-1 && !edges[1].isDrawn && !isDirectionBlockedByPawn(1, adjPawnCoordDir)){ //checking if below tile is reachable, could be out of bounds, blocked by wall or enemy
-//            int tileNum = Utility.convert2Dto1D(pawnCoord[0], pawnCoord[1]+1, board.getWidth());
-//            validMoveTiles.add(tileNum);
-//        }
-        return null;
+    private List<Integer> getSpecialValidTiles(List<int[]> adjPawnCoordDir, int pawnPos, int teamNum) {
+        List<Integer> specialValidTiles = new ArrayList<>();
+        // Get pawn coordinates
+        int[] pawnCoord = Utility.convert1Dto2D(pawnPos, board.getWidth());
+
+        // Check each adjacent pawn for jumping possibility
+        for (int[] adjPawn : adjPawnCoordDir) {
+            int adjPawnX = adjPawn[0];
+            int adjPawnY = adjPawn[1];
+            int direction = adjPawn[2];
+
+
+            if (teamNum == 1 && adjPawnX > pawnCoord[0]) {
+                int destX = adjPawnX + 1;
+                int destY = pawnCoord[1];
+                int tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                if (!(tileNum > board.getHeight() * board.getHeight() || tileNum < 1)) {
+                    specialValidTiles.add(tileNum);
+                }
+            }
+            else if (teamNum == 0 && adjPawnX < pawnCoord[0]) {
+                int destX = adjPawnX - 1;
+                int destY = pawnCoord[1];
+                int tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                if (!(tileNum > board.getHeight() * board.getHeight() || tileNum < 1)) {
+                    specialValidTiles.add(tileNum);
+                }
+            }
+            else if (teamNum == 2 && adjPawnY > pawnCoord[1]) {
+                int destX = pawnCoord[0];
+                int destY = adjPawnY + 1;
+                int tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                if (!(tileNum > board.getHeight() * board.getHeight() || tileNum < 1)) {
+                    specialValidTiles.add(tileNum);
+                }
+            }
+            else if (teamNum == 3 && adjPawnY < pawnCoord[1]) {
+                int destX = pawnCoord[0];
+                int destY = adjPawnY - 1;
+                int tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                if (!(tileNum > board.getHeight() * board.getHeight() || tileNum < 1)) {
+                    specialValidTiles.add(tileNum);
+                }
+            }
+        }
+        return specialValidTiles;
     }
+
 
     private int[][] get2DPawnPositions (){
         int[][] positions = new int[teams.length][2];
