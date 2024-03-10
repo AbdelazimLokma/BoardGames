@@ -182,7 +182,7 @@ public class QuoridorGame extends Game{
             edgeIndex--;
 
         if (edgeValidity[edgeIndex] == 1){
-            String usrResp = Input.getStringInput(3,"You can only place an wall s.t it also covers its left neighbor, would you like to do this?");
+            String usrResp = Input.getStringInput(3,"You can only place a wall s.t it also covers its left neighbor, would you like to do this?");
             if ( usrResp.equals("YES") ||  usrResp.equals("yes") || usrResp.equals("y")){
                 //TODO: check pawn DFS before placement
                 board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
@@ -191,7 +191,7 @@ public class QuoridorGame extends Game{
             //TODO: handle no case
         }
         else if (edgeValidity[edgeIndex] == 2){
-            String usrResp = Input.getStringInput(3,"You can only place an wall s.t it also covers its right neighbor, would you like to do this?");
+            String usrResp = Input.getStringInput(3,"You can only place a wall s.t it also covers its right neighbor, would you like to do this?");
             if ( usrResp.equals("YES") ||  usrResp.equals("yes") || usrResp.equals("y")){
                 //TODO: check pawn DFS before placement
                 board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
@@ -426,37 +426,119 @@ public class QuoridorGame extends Game{
             int adjPawnY = adjPawn[1];
             int direction = adjPawn[2];
 
+            Edge[] edges = board.getBoxEdges(adjPawnX, adjPawnY);
+
 
             if (teamNum == 1 && adjPawnX > pawnCoord[0]) {
                 int destX = adjPawnX + 1;
                 int destY = pawnCoord[1];
                 int tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
-                if (!(tileNum > board.getHeight() * board.getHeight() || tileNum < 1)) {
-                    specialValidTiles.add(tileNum);
+                if (!(tileNum > board.getHeight() * board.getWidth())) {
+                    if (!edges[2].isDrawn) {
+                        specialValidTiles.add(tileNum);
+                    }
+                    else {
+                        if (!edges[1].isDrawn) {
+                            destX = pawnCoord[0] + 1;
+                            destY = pawnCoord[1] + 1;
+                            tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                            if (tileNum <= board.getHeight() * board.getWidth()) {
+                                specialValidTiles.add(tileNum);
+                            }
+                        }
+                        if (!edges[3].isDrawn) {
+                            destX = pawnCoord[0] + 1;
+                            destY = pawnCoord[1] - 1;
+                            tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                            if (tileNum <= board.getHeight() * board.getWidth()) {
+                                specialValidTiles.add(tileNum);
+                            }
+                        }
+                    }
                 }
             }
             else if (teamNum == 0 && adjPawnX < pawnCoord[0]) {
                 int destX = adjPawnX - 1;
                 int destY = pawnCoord[1];
                 int tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
-                if (!(tileNum > board.getHeight() * board.getHeight() || tileNum < 1)) {
-                    specialValidTiles.add(tileNum);
+                if (!(tileNum < 1)) {
+                    if (!edges[0].isDrawn) {
+                        specialValidTiles.add(tileNum);
+                    }
+                    else {
+                        if (!edges[1].isDrawn) {
+                            destX = pawnCoord[0] - 1;
+                            destY = pawnCoord[1] + 1;
+                            tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                            if (tileNum <= board.getHeight() * board.getWidth()) {
+                                specialValidTiles.add(tileNum);
+                            }
+                        }
+                        if (!edges[3].isDrawn) {
+                            destX = pawnCoord[0] - 1;
+                            destY = pawnCoord[1] - 1;
+                            tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                            if (tileNum <= board.getHeight() * board.getWidth()) {
+                                specialValidTiles.add(tileNum);
+                            }
+                        }
+                    }
                 }
             }
             else if (teamNum == 2 && adjPawnY > pawnCoord[1]) {
                 int destX = pawnCoord[0];
                 int destY = adjPawnY + 1;
                 int tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
-                if (!(tileNum > board.getHeight() * board.getHeight() || tileNum < 1)) {
-                    specialValidTiles.add(tileNum);
+                if (!(destY >= board.getWidth())) {
+                    if (!edges[1].isDrawn) {
+                        specialValidTiles.add(tileNum);
+                    }
+                    else {
+                        if (!edges[0].isDrawn) {
+                            destX = pawnCoord[0] - 1;
+                            destY = pawnCoord[1] + 1;
+                            if (destX >= 0) {
+                                tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                                specialValidTiles.add(tileNum);
+                            }
+                        }
+                        if (!edges[2].isDrawn) {
+                            destX = pawnCoord[0] + 1;
+                            destY = pawnCoord[1] + 1;
+                            if (destX < board.getHeight()) {
+                                tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                                specialValidTiles.add(tileNum);
+                            }
+                        }
+                    }
                 }
             }
             else if (teamNum == 3 && adjPawnY < pawnCoord[1]) {
                 int destX = pawnCoord[0];
                 int destY = adjPawnY - 1;
                 int tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
-                if (!(tileNum > board.getHeight() * board.getHeight() || tileNum < 1)) {
-                    specialValidTiles.add(tileNum);
+                if (!(destY < 0)) {
+                    if (!edges[3].isDrawn) {
+                        specialValidTiles.add(tileNum);
+                    }
+                    else {
+                        if (!edges[0].isDrawn) {
+                            destX = pawnCoord[0] - 1;
+                            destY = pawnCoord[1] - 1;
+                            if (destX >= 0) {
+                                tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                                specialValidTiles.add(tileNum);
+                            }
+                        }
+                        if (!edges[2].isDrawn) {
+                            destX = pawnCoord[0] + 1;
+                            destY = pawnCoord[1] - 1;
+                            if (destX < board.getHeight()) {
+                                tileNum = Utility.convert2Dto1D(destX, destY, board.getWidth());
+                                specialValidTiles.add(tileNum);
+                            }
+                        }
+                    }
                 }
             }
         }
