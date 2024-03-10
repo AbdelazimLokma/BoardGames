@@ -195,7 +195,7 @@ public class QuoridorGame extends Game{
             if ( usrResp.equals("YES") ||  usrResp.equals("yes") || usrResp.equals("y")){
                 //TODO: check pawn DFS before placement
                 board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
-                placeAdjacentEdge(tileCoord, edgeIndex, 1);
+                placeAdjacentEdge(tileCoord, edgeIndex, 0);
             }
             //TODO: handle no case
         }
