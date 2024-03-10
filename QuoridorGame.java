@@ -14,7 +14,6 @@ public class QuoridorGame extends Game{
     private final Difficulty difficulty = Difficulty.EASY; //Since this is a PvP game, it has no impact on the game.
     public QuoridorGame(){
         initialize();
-        start();
     }
 
     @Override
@@ -87,7 +86,7 @@ public class QuoridorGame extends Game{
         Queue<Player> queue = ConsoleController.loadPlayerQueue(teams, randomInt);
 
 
-        while (!checkWinCondition()){
+        while (true){
             //draw player from queue, take input
             Player p = queue.poll();
 
@@ -98,8 +97,14 @@ public class QuoridorGame extends Game{
             updateGameState(playerChoice, p);
 
             render();
+            if (checkWinCondition(p.getTeamNum())) {
+                System.out.println("Congratulations team " + Utility.colorString(teams[p.getTeamNum()].getTeamName(), p.getTeamNum()) + " you have won!");
+                break;
+            }
             //add to back of queue
             queue.add(p);
+
+
         }
 
 
@@ -119,6 +124,22 @@ public class QuoridorGame extends Game{
     @Override
     boolean checkWinCondition() {
         return false;
+    }
+
+    boolean checkWinCondition(int teamNum) {
+        int pos = Utility.convert1Dto2D(pawnPositions[teamNum], board.getWidth())[0];
+        if (teamNum == 0 &&  pos == 0) {
+            return true;
+        }
+        if (teamNum == 1 && pos == board.getHeight() - 1) {
+            return true;
+        }
+
+        pos = Utility.convert1Dto2D(pawnPositions[teamNum], board.getWidth())[1];
+        if (teamNum == 2 && pos == board.getWidth() - 1) {
+            return true;
+        }
+        return teamNum == 3 && pos == 0;
     }
 
     @Override
