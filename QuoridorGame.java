@@ -181,34 +181,41 @@ public class QuoridorGame extends Game{
         int edgeIndex = Input.getIntInput(1, validEdges.size(), "Choose a number: ");
             edgeIndex--;
 
-        if (edgeValidity[edgeIndex] == 1){
-            String usrResp = Input.getStringInput(3,"You can only place a wall s.t it also covers its left neighbor, would you like to do this?");
-            if ( usrResp.equals("YES") ||  usrResp.equals("yes") || usrResp.equals("y")){
-                //TODO: check pawn DFS before placement
-                board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
-                placeAdjacentEdge(tileCoord, edgeIndex, 1);
-            }
-            //TODO: handle no case
-        }
-        else if (edgeValidity[edgeIndex] == 2){
-            String usrResp = Input.getStringInput(3,"You can only place a wall s.t it also covers its right neighbor, would you like to do this?");
-            if ( usrResp.equals("YES") ||  usrResp.equals("yes") || usrResp.equals("y")){
-                //TODO: check pawn DFS before placement
-                board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
-                placeAdjacentEdge(tileCoord, edgeIndex, 0);
-            }
-            //TODO: handle no case
+        edgeIndex = board.getIndexFromDirection(validEdges.get(edgeIndex));
+
+        if (edgeValidity[edgeIndex] == 1 || edgeValidity[edgeIndex] == 2){ //is the validity of this edge 1 or 2
+            board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
+            placeAdjacentEdge(tileCoord, edgeIndex, edgeValidity[edgeIndex]);
         }
         else{
             List<String> directions= new ArrayList<>();
-            directions.add("left");
-            directions.add("right");
+
+            if (edgeIndex == 0 || edgeIndex == 2) {
+                directions.add("left");
+                directions.add("right");
+            }
+            else{
+                directions.add("up");
+                directions.add("down");
+            }
+
+            
 
             ConsoleController.displayOptions(directions,"Which direction do you want your wall to face?");
             int direction = Input.getIntInput(1, 2, "Choose a number: ");
             //TODO: check pawn DFS before placement
             board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
-            placeAdjacentEdge(tileCoord, edgeIndex, direction);
+
+            if(edgeIndex == 2 && direction == 1){
+                placeAdjacentEdge(tileCoord, edgeIndex, 2);
+            } else if (edgeIndex == 2 && direction == 2) {
+                placeAdjacentEdge(tileCoord, edgeIndex, 1);
+            }
+            else{
+                placeAdjacentEdge(tileCoord, edgeIndex, direction);
+            }
+
+
 
         }
 
@@ -216,7 +223,7 @@ public class QuoridorGame extends Game{
         wallsPerTeam[p.getTeamNum()] --;
     }
 
-    private void placeAdjacentEdge( int[] curBoxCoord, int edgeIndx, int direction){
+    private void placeAdjacentEdge(int[] curBoxCoord, int edgeIndx, int direction){
         if (edgeIndx == 0){
             if (direction == 1){ //place to the left
                 board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]-1)[0].isDrawn = true;
@@ -235,7 +242,7 @@ public class QuoridorGame extends Game{
         }
         else if (edgeIndx == 2){
             if (direction == 1){ //place to the left
-                board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1]-1)[2].isDrawn = true;
+                board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]-1)[2].isDrawn = true;
             }
             else{
                 board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]+1)[2].isDrawn = true;
@@ -253,11 +260,18 @@ public class QuoridorGame extends Game{
 
     private int[] getValidEdges(int x, int y){ //TODO: too much repeated code, function can be shortened w/ 2 helpers
 
-        List<Edge> undrawnEdges =  board.getUndrawnBoxEdges(x,y);
+        List<Edge> undrawnEdges =  board.getUndrawnBoxEdges(x,y, true);
         int[] validEdges =  new int[4];
+        List<String> undrawnEdgesNames = board.getUndrawnBoxEdgeNames(x, y);
+        //returns an array of numbers, each number represents how many ways we can place a wall on a certain edge
+        // 3 - wall can be placed extending left or right
+        // 2 - wall can be places extending right only
+        // 1 - wall can be places extending left only
+        // 0 - wall cannot be placed at all on this edge
+
 
         for (int i = 0; i< undrawnEdges.size(); i++){
-            if (i == 0){ //check top edges
+            if (undrawnEdges.get(i).getType().equals("up")){ //check top edges
                 if (y == 0){
                     if (!board.getBoxEdges(x,y+1)[0].isDrawn){
                         validEdges[0] = 2;
@@ -279,7 +293,7 @@ public class QuoridorGame extends Game{
                     }
                 }
             }
-            else if (i == 1){
+            else if (undrawnEdges.get(i).getType().equals("right")){
                 if (x == 0){ //top row tile, only check row below
                     if (!board.getBoxEdges(x+1,y)[1].isDrawn){
                         validEdges[1] = 2;
@@ -302,7 +316,7 @@ public class QuoridorGame extends Game{
                 }
 
             }
-            else if (i == 2){ //check bottom edges
+            else if (undrawnEdges.get(i).getType().equals("down")){ //check bottom edges
                 if (y == 0){
                     if (!board.getBoxEdges(x,y+1)[2].isDrawn){
                         validEdges[2] = 2;

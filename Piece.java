@@ -16,6 +16,10 @@ public class Piece <T>{
         return type;
     }
 
+    public void setType(T type){
+        this.type = type;
+    }
+
     public String toString(){
         return type.toString();
     }

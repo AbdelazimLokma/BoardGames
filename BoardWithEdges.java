@@ -75,11 +75,15 @@ public class BoardWithEdges extends Board{
 
     }
 
-    public List<Edge> getUndrawnBoxEdges(int row, int col) {
+    public List<Edge> getUndrawnBoxEdges(int row, int col, boolean setEdgeName) {
         List<Edge> toRet = new ArrayList<>();
-        for (Edge e: getBoxEdges(row, col)){
-            if (!e.isDrawn){
-                toRet.add(e);
+        Edge[] edges = getBoxEdges(row, col);
+        for (int i = 0; i < edges.length; i++ ){
+            if (!edges[i].isDrawn){
+                if(setEdgeName){
+                    edges[i].setType(getEdgeName(i));
+                }
+                toRet.add(edges[i]);
             }
         }
         return toRet;
@@ -100,6 +104,16 @@ public class BoardWithEdges extends Board{
     public String getEdgeName(int i){
         String[] names = {"up", "right", "down", "left"};
         return names[i];
+    }
+
+    public int getIndexFromDirection (String direction){
+        String[] names = {"up", "right", "down", "left"};
+        for (int i = 0; i < names.length; i++){
+            if (names[i].equals(direction)){
+                return i;
+            }
+        }
+        return -1;
     }
 
 

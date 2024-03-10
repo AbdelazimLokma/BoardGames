@@ -85,7 +85,7 @@ public class DotsAndBoxesGame extends Game{
             do {
                 cellInput = Input.getIntInput(1, flattenedBoard.length, "Please choose the desired cell:");
                 cellCoord = board.getTileCoords(flattenedBoard[cellInput-1]);
-                edges = board.getUndrawnBoxEdges(cellCoord[0], cellCoord[1]);
+                edges = board.getUndrawnBoxEdges(cellCoord[0], cellCoord[1],false);
                 if (edges.isEmpty()){
                     System.out.println("ERROR - Please choose a cell corresponding to an incomplete box.");
                 }
@@ -146,7 +146,7 @@ public class DotsAndBoxesGame extends Game{
     }
 
     void updateGameState(int[] cellCoord, int edge) {
-        List<Edge> edges = board.getUndrawnBoxEdges(cellCoord[0], cellCoord[1]);
+        List<Edge> edges = board.getUndrawnBoxEdges(cellCoord[0], cellCoord[1], false);
         edges.get(edge-1).isDrawn = true;
     }
 
