@@ -35,6 +35,12 @@ public class DotsAndBoxesGame extends Game{
         }
 
         teamPoints = new Integer[teams.length];
+
+        for (Team team: teams){
+            team.setStatNames("Maximum # of Wins", "Maximum # of moves made");
+        }
+
+
         Arrays.fill(teamPoints, 0);
 
         System.out.println("Great! Lets now get the board dimensions, here we are referring to the # of boxes that can be drawn.");
@@ -117,7 +123,7 @@ public class DotsAndBoxesGame extends Game{
             }
 
 
-            teams[currPlayer.getTeamNum()].incrementMovesMade();
+            teams[currPlayer.getTeamNum()].incrementStat2();
 
 
             render();

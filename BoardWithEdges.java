@@ -142,10 +142,10 @@ public class BoardWithEdges extends Board{
                     String tileValue = tiles[row][col].getPiece().toString();
 
                     if (Integer.parseInt(tileValue) < 10){
-                        line += "|   " + tileValue + "  ";
+                        line += "|  " + tileValue + "  ";
                     }
                     else{
-                        line += "|   " + tileValue + " ";
+                        line += "|  " + tileValue + " ";
                     }
 
                 }
@@ -285,22 +285,22 @@ public class BoardWithEdges extends Board{
         Edge[] boxEdges = getBoxEdges(x, y);
 
         // Up: Check if there is no horizontal edge above and no wall above
-        if (x > 0 && !boxEdges[0].isDrawn && dfs(x - 1, y, targetRow, targetCol, visited, checkRow)) {
+        if (x > 0 && !boxEdges[0].isDrawn && !visited[x-1][y] && dfs(x - 1, y, targetRow, targetCol, visited, checkRow) ) {
             return true;
         }
 
         // Down: Check if there is no horizontal edge below and no wall below
-        if (x < super.getHeight() - 1 && !boxEdges[2].isDrawn && dfs(x + 1, y, targetRow, targetCol, visited, checkRow)) {
+        if (x < super.getHeight() - 1  && !boxEdges[2].isDrawn && !visited[x+1][y] && dfs(x + 1, y, targetRow, targetCol, visited, checkRow)) {
             return true;
         }
 
         // Left: Check if there is no vertical edge to the left and no wall to the left
-        if (y > 0 && !boxEdges[3].isDrawn && dfs(x, y - 1, targetRow, targetCol, visited, checkRow)) {
+        if (y > 0 && !boxEdges[3].isDrawn && !visited[x][y-1] && dfs(x, y - 1, targetRow, targetCol, visited, checkRow)) {
             return true;
         }
 
         // Right: Check if there is no vertical edge to the right and no wall to the right
-        if (y < super.getWidth() - 1 && !boxEdges[1].isDrawn && dfs(x, y + 1, targetRow, targetCol, visited, checkRow)) {
+        if (y < super.getWidth() - 1  && !boxEdges[1].isDrawn && !visited[x][y+1] && dfs(x, y + 1, targetRow, targetCol, visited, checkRow)) {
             return true;
         }
 
@@ -308,7 +308,25 @@ public class BoardWithEdges extends Board{
     }
 
 
-
+    public void fillBorderWalls(){
+        for (int y = 0; y < getWidth(); y++ ){
+            for (int x = 0; x < getHeight(); x++ ){
+                Edge[] edges = getBoxEdges(x,y);
+                if (x == 0) {
+                    edges[0].isDrawn = true;
+                }
+                else if(x == getHeight() - 1){
+                    edges[2].isDrawn = true;
+                }
+                if (y == 0){
+                    edges[3].isDrawn = true;
+                }
+                else if (y ==  getWidth()-1){
+                    edges[1].isDrawn = true;
+                }
+            }
+        }
+    }
 
 
 

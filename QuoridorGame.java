@@ -38,6 +38,10 @@ public class QuoridorGame extends Game{
 
         this.teamPawns = new ArrayList<>();
 
+        for (Team team: teams){
+            team.setStatNames("Number of offensive moves made (pawn movements)", "Number of defensive moves (wall placements)");
+        }
+
         setWallsPerTeam();
 
         pawnPositions = new Integer[teams.length];
@@ -88,6 +92,7 @@ public class QuoridorGame extends Game{
         int[] dims = ConsoleController.inputBoardDim(this);
         board = new BoardWithEdges(dims[0],dims[1]);
         this.board.numberBoardTiles();
+        board.fillBorderWalls();
     }
 
     @Override
@@ -131,8 +136,6 @@ public class QuoridorGame extends Game{
 
     @Override
     void end() {
-
-
     }
 
     void end(Player p){
@@ -142,6 +145,11 @@ public class QuoridorGame extends Game{
 
     @Override
     void reset() {
+        for (int i = 0; i < teams.length; i++) {
+
+            setPawnStartingPosition(i);
+        }
+        setWallsPerTeam();
 
     }
 
@@ -151,7 +159,7 @@ public class QuoridorGame extends Game{
     }
 
     /**
-     * Overrieds the win condition method because we want to check
+     * Overrides the win condition method because we want to check
      * which team reached their goal
      * @param teamNum
      */
@@ -207,7 +215,7 @@ public class QuoridorGame extends Game{
         List<String> options = new ArrayList<>();
         options.add("Move Pawn");
         if (wallsPerTeam[p.getTeamNum()] > 0){
-            options.add("Add Wall");
+            options.add("Add Wall, (walls remaining: "+ wallsPerTeam[p.getTeamNum()]+").");
             ConsoleController.displayOptions(options, "Player " + p.getpName() + ", would you like to move your pawn or place a wall");
             return Input.getIntInput(1, 2, "Please input the number corresponding to the desired option:");
         }
@@ -275,6 +283,10 @@ public class QuoridorGame extends Game{
                         directions.add("right");
                         directions.add("left");
                     }
+                    else if(edgeIndex == 3){
+                        directions.add("down");
+                        directions.add("up");
+                    }
                     else{
                         directions.add("up");
                         directions.add("down");
@@ -291,13 +303,15 @@ public class QuoridorGame extends Game{
                     adjEdge =  placeAdjacentEdge(tileCoord, edgeIndex, edgeValidity[edgeIndex]);
                 }
                 else{
+                    board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
+                    tileEdge = board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex];
                     if(edgeIndex == 2 && direction == 1){
-                        placeAdjacentEdge(tileCoord, edgeIndex, 2);
+                        adjEdge = placeAdjacentEdge(tileCoord, edgeIndex, 2);
                     } else if (edgeIndex == 2 && direction == 2) {
-                        placeAdjacentEdge(tileCoord, edgeIndex, 1);
+                        adjEdge = placeAdjacentEdge(tileCoord, edgeIndex, 1);
                     }
                     else{
-                        placeAdjacentEdge(tileCoord, edgeIndex, direction);
+                        adjEdge = placeAdjacentEdge(tileCoord, edgeIndex, direction);
                     }
                 }
 
@@ -319,6 +333,7 @@ public class QuoridorGame extends Game{
 
             System.out.println("Wall has been placed!");
             wallsPerTeam[p.getTeamNum()] --;
+            teams[p.getTeamNum()].incrementStat2();
         }
 
         
@@ -378,7 +393,7 @@ public class QuoridorGame extends Game{
             }
         }
         else if (edgeIndx == 2){
-            if (direction == 1){ //place to the left
+            if (direction == 1){ //place to the left (left in this case means relative to the board)
                 board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]-1)[2].isDrawn = true;
                 return  board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]-1)[2];
             }
@@ -389,16 +404,8 @@ public class QuoridorGame extends Game{
         }
         else{
             if (direction == 1){ //place to the left
-                if (curBoxCoord[0] == 0) {
-                    board.getBoxEdges(curBoxCoord[0] + 1, curBoxCoord[1])[3].isDrawn = true;
-                    return board.getBoxEdges(curBoxCoord[0] + 1, curBoxCoord[1])[3];
-                }
-                else{
-                    board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[3].isDrawn = true;
-                    return board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[3];
-                }
-
-
+                board.getBoxEdges(curBoxCoord[0] + 1, curBoxCoord[1])[3].isDrawn = true;
+                return board.getBoxEdges(curBoxCoord[0] + 1, curBoxCoord[1])[3];
             }
             else{
                 board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[3].isDrawn = true;
@@ -477,7 +484,7 @@ public class QuoridorGame extends Game{
                     }
                 } else if (y == board.getWidth()-1) {
                     if (!board.getBoxEdges(x,y-1)[2].isDrawn){
-                        validEdges[2] = 1;
+                        validEdges[2] = 1; //change to 2 if left is relative to edge and not board
                     }
                 }
                 else{ //central tile, check the top edge of both adjacent tiles
@@ -507,10 +514,10 @@ public class QuoridorGame extends Game{
                         validEdges[3] = 3;
                     }
                     else if (!board.getBoxEdges(x-1,y)[3].isDrawn){
-                        validEdges[3] = 1;
+                        validEdges[3] = 2;
                     }
                     else if (!board.getBoxEdges(x+1,y)[3].isDrawn) {
-                        validEdges[3] = 2;
+                        validEdges[3] = 1;
                     }
                 }
 
@@ -518,6 +525,7 @@ public class QuoridorGame extends Game{
         }
         return validEdges;
     }
+
 
     private void setWallsPerTeam(){
         int numTotalWalls = 20;
@@ -541,6 +549,7 @@ public class QuoridorGame extends Game{
         int choice = Input.getIntInput(validMoveTiles, "Please enter the tile # you want to move to");
         pawnPositions[p.getTeamNum()] = choice;
         System.out.println("Your pawn has succesfully moved to tile: "+ choice);
+        teams[p.getTeamNum()].incrementStat1();
     }
 
     /**
@@ -832,7 +841,6 @@ public class QuoridorGame extends Game{
 
 
     //TODO:
-    //  6 - wall count display
-    //  7 - change the valid dimensions of the board
+    //  stats
 
 }

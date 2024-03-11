@@ -1,7 +1,4 @@
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * Manages console interactions for a game application, including welcoming users, game selection,
@@ -13,10 +10,10 @@ import java.util.stream.Stream;
  */
 public class ConsoleController {
 
-    public void welcomeMessage(){
+    public static void welcomeMessage(){
         System.out.println("Hello there!, welcome to the game launcher!");
-        System.out.println("");
-        this.chooseGame();
+        System.out.println();
+        chooseGame();
     }
 
     public static void chooseGame(){
@@ -55,26 +52,9 @@ public class ConsoleController {
                 }
                 else{ //game is multiplayer
                     Team[] teams = (Team[]) ((Object[]) participants);
-                    int maxNumWins = 0;
-                    int maxMovesMade = 0;
-                    Team maxWinsId = teams[0];
-                    Team maxMovesId = teams[0];
 
-                    for(Team t: teams){
-                        if (t.getTeamStats()[0] > maxNumWins){
-                            maxNumWins = t.getTeamStats()[0];
-                            maxWinsId = t;
-                        }
-                        if (t.getTeamStats()[1] > maxMovesMade){
-                            maxMovesMade = t.getTeamStats()[1];
-                            maxMovesId = t;
-                        }
-                    }
-                    if (g.getGameName().equals("Dots and Boxes")) {
-                        System.out.println("Before you go, lets have a look at some statistics:");
-                        System.out.println("    -Team: " + maxWinsId.getTeamName() + " has won the most games with " + maxNumWins + " games won!");
-                        System.out.println("    -Team: " + maxMovesId.getTeamName() + " was the most active team, with " + maxMovesMade + " moves made in all games played!");
-                    }
+
+                    ConsoleController.announceStats(teams);
                 }
                 inputCon = false;
             }
@@ -103,6 +83,23 @@ public class ConsoleController {
         }
 
     }
+
+    public static void announceStats (Team[] teams){
+
+        //index 0 is team num
+        //index 1 is stat val
+        //index 3 is prompt
+        System.out.println("Before you go, here are some interesting statistics for each team:\n");
+
+        for (Team team: teams) {
+            System.out.println("Team: " + team.getTeamName());
+            System.out.println(" -"+team.getTeamStatNames()[0]+ ": " + team.getTeamStats()[0]);
+            System.out.println(" -"+team.getTeamStatNames()[1]+ ": " + team.getTeamStats()[1]);
+        }
+        System.out.println();
+
+    }
+
 
 
     public static int[] inputBoardDim() {
@@ -205,7 +202,7 @@ public class ConsoleController {
                 position = i + 1;
                 if (i == 0) { // First place
                     System.out.println(String.format("Team %s has won with %d points", entry.getKey().getTeamName(), entry.getValue()));
-                    entry.getKey().incrementNumWins();
+                    entry.getKey().incrementStat1();
                 } else { // Non-tied, non-first place
                     System.out.println(String.format("Team %s is in place %d with %d points", entry.getKey().getTeamName(), position, entry.getValue()));
                 }

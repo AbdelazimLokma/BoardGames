@@ -1,3 +1,4 @@
+import java.util.List;
 import java.util.Scanner;
 /**
  * Provides an abstract framework for game development, including lifecycle methods and game state management.
@@ -17,6 +18,8 @@ public abstract class Game {
     private Difficulty difficulty;
 
     boolean hasDifficulty;
+
+    List<Object[]> Stats;
 
 
     /**

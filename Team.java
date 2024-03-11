@@ -11,14 +11,20 @@ public class Team {
     private Player[] players;
     private String teamName;
 
-    private int numWins;
-    private int movesMade;
+    private int stat1;
+    private int stat2;
+
+    private String statName1;
+
+    private String statName2;
 
     public Team(String teamName, int teamSize){
         players = new Player[teamSize];
         this.teamName = teamName;
-        numWins = 0;
-        movesMade = 0;
+        stat1 = 0;
+        stat2 = 0;
+        statName1 = "";
+        statName2 = "";
     }
 
     public Player[] getPlayers() {
@@ -38,14 +44,24 @@ public class Team {
     }
 
     public int[] getTeamStats(){
-        return new int[] {numWins, movesMade};
+        return new int[] {stat1, stat2};
     }
 
-    public void incrementNumWins() {
-        this.numWins++;
+    public String[] getTeamStatNames(){
+        return new String[]{statName1, statName2};
     }
 
-    public void incrementMovesMade() {
-        this.movesMade++;
+    public void setStatNames(String statName1, String statName2) {
+        this.statName1 = statName1;
+        this.statName2 = statName2;
+
+    }
+
+    public void incrementStat1() {
+        this.stat1++;
+    }
+
+    public void incrementStat2() {
+        this.stat2++;
     }
 }
