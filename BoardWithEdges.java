@@ -257,7 +257,7 @@ public class BoardWithEdges extends Board{
 
 
     public boolean canReachTarget(int x, int y, int targetRow, int targetCol, boolean checkRow) {
-        // Initialize a visited array to keep track of visited tiles
+
         boolean[][] visited = new boolean[super.getHeight()][super.getWidth()];
         return dfs(x, y, targetRow, targetCol, visited, checkRow);
     }
@@ -273,19 +273,15 @@ public class BoardWithEdges extends Board{
      * @return
      */
     private boolean dfs(int x, int y, int targetRow, int targetCol, boolean[][] visited, boolean checkRow) {
-        // Check if current position is the target
         if ((checkRow && x == targetRow) || (!checkRow && y == targetCol)) {
             return true;
         }
-        // Check if current position is outside the grid or already visited
         if (x < 0 || x >= super.getHeight() || y < 0 || y >= super.getWidth() || visited[x][y]) {
             return false;
         }
 
-        // Mark the current position as visited
         visited[x][y] = true;
 
-        // Get the edges surrounding the current tile
         Edge[] boxEdges = getBoxEdges(x, y);
 
         // Up: Check if there is no horizontal edge above and no wall above
@@ -308,7 +304,6 @@ public class BoardWithEdges extends Board{
             return true;
         }
 
-        // If no path is found, backtrack
         return false;
     }
 
