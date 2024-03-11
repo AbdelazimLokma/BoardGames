@@ -256,50 +256,49 @@ public class BoardWithEdges extends Board{
 
 
 
-    public boolean canReachTarget(int x, int y, int targetRow, int targetCol) {
-        // Check if starting point is outside the grid
-        if (x < 0 || x >= super.getHeight() || y < 0 || y >= super.getWidth()) {
-            return false;
-        }
+    public boolean canReachTarget(int x, int y, int targetRow, int targetCol, boolean checkRow) {
 
         // Initialize a visited array to keep track of visited tiles
         boolean[][] visited = new boolean[super.getHeight()][super.getWidth()];
-        return dfs(x, y, targetRow, targetCol, visited);
+        return dfs(x, y, targetRow, targetCol, visited, checkRow);
     }
 
-    private boolean dfs(int x, int y, int targetRow, int targetCol, boolean[][] visited) {
-        // Check if current position is the target or outside the grid
-        if (x == targetRow || y == targetCol) {
+    private boolean dfs(int x, int y, int targetRow, int targetCol, boolean[][] visited, boolean checkRow) {
+        // Check if current position is the target
+        if ((checkRow && x == targetRow) || (!checkRow && y == targetCol)) {
             return true;
         }
+        // Check if current position is outside the grid or already visited or is blocked by a wall
         if (x < 0 || x >= super.getHeight() || y < 0 || y >= super.getWidth() || visited[x][y]) {
             return false;
         }
 
-        // Mark the current tile as visited
+        // Mark the current position as visited
         visited[x][y] = true;
 
-        // Up
-        if (x > 0 && !verticalEdges[x-1][y].isDrawn && dfs(x - 1, y, targetRow, targetCol, visited)) {
+        // Up: Check if there is no horizontal edge above and DFS to the square above
+        if (x > 0 && !horizontalEdges[x - 1][y].isDrawn && dfs(x - 1, y, targetRow, targetCol, visited, checkRow)) {
             return true;
         }
 
-        // Down
-        if (x < super.getHeight() - 1 && !verticalEdges[x][y].isDrawn && dfs(x + 1, y, targetRow, targetCol, visited)) {
+        // Down: Check if there is no horizontal edge below and DFS to the square below
+        // Only do this if we are not on the last row (since the last row's bottom edge is out of bounds)
+        if (x < super.getHeight() - 1  && !horizontalEdges[x+1][y].isDrawn && dfs(x + 1, y, targetRow, targetCol, visited, checkRow)) {
             return true;
         }
 
-        // Left
-        if (y > 0 && !horizontalEdges[x][y-1].isDrawn && dfs(x, y - 1, targetRow, targetCol, visited)) {
+        // Left: Check if there is no vertical edge to the left and DFS to the square to the left
+        if (y > 0 && !verticalEdges[x][y - 1].isDrawn && dfs(x, y - 1, targetRow, targetCol, visited, checkRow)) {
             return true;
         }
 
-        // Right
-        if (y < super.getWidth() - 1 && !horizontalEdges[x][y].isDrawn && dfs(x, y + 1, targetRow, targetCol, visited)) {
+        // Right: Check if there is no vertical edge to the right and DFS to the square to the right
+        // Only do this if we are not on the last column (since the last column's right edge is out of bounds)
+        if (y < super.getWidth() -1 && !verticalEdges[x][y+1].isDrawn && dfs(x, y + 1, targetRow, targetCol, visited, checkRow)) {
             return true;
         }
 
-        // If no path is found
+        // If no path is found, backtrack
         return false;
     }
 

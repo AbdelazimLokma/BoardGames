@@ -98,7 +98,7 @@ public class QuoridorGame extends Game{
 
             render();
             if (checkWinCondition(p.getTeamNum())) {
-                System.out.println("Congratulations team " + Utility.colorString(teams[p.getTeamNum()].getTeamName(), p.getTeamNum()) + " you have won!");
+                end(p);
                 break;
             }
             //add to back of queue
@@ -113,6 +113,12 @@ public class QuoridorGame extends Game{
 
     @Override
     void end() {
+
+
+    }
+
+    void end(Player p){
+        System.out.println("Congratulations team " + Utility.colorString(teams[p.getTeamNum()].getTeamName(), p.getTeamNum()) + " you have won!");
 
     }
 
@@ -150,7 +156,7 @@ public class QuoridorGame extends Game{
             movePawn(p);
         }
         else{
-            placeWall(p);
+            getWallInfo(p);
         }//process - process player input
     }
 
@@ -185,48 +191,116 @@ public class QuoridorGame extends Game{
 
     }
 
-    private void placeWall(Player p){
-        int tileNum1D = Input.getIntInput(1, board.flattenBoard().length, "Please select which tile to add a wall to:");
-        int[] tileCoord = Utility.convert1Dto2D(tileNum1D, board.getWidth());
-        int[] edgeValidity = getValidEdges(tileCoord[0], tileCoord[1]);
-        List<String> validEdges = new ArrayList<>();
+    private void getWallInfo(Player p){
+        //goodluck figuring this one out kevin
 
-        for (int i = 0 ; i < 4; i++){
-            if (edgeValidity[i] != 0){
-                validEdges.add(board.getEdgeName(i));
+        int[] tileCoord = new int[0];
+        int[] edgeValidity = new int[0];
+        int edgeIndex = 0;
+        int direction = 0;
+        boolean exitMethod = false;
+        Edge tileEdge = null;
+        Edge adjEdge = null;
+
+        do {
+            if(!checkIfPawnPathsBlocked ()){
+                tileEdge.isDrawn = false;
+                adjEdge.isDrawn = false;
+
             }
+            int tileNum1D = Input.getIntInput(0, board.flattenBoard().length, "Please select which tile to add a wall to\n" +
+                    "or select 0 to move your pawn instead:");
+
+            if(tileNum1D == 0){
+                movePawn(p);
+                exitMethod = true;
+            }
+            else{
+                tileCoord = Utility.convert1Dto2D(tileNum1D, board.getWidth());
+                edgeValidity = getValidEdges(tileCoord[0], tileCoord[1]);
+                List<String> validEdges = new ArrayList<>();
+
+                for (int i = 0 ; i < 4; i++){
+                    if (edgeValidity[i] != 0){
+                        validEdges.add(board.getEdgeName(i));
+                    }
+                }
+
+
+                ConsoleController.displayOptions(validEdges,"Now, please select which side of the tile to place an edge on:");
+                edgeIndex = Input.getIntInput(1, validEdges.size(), "Choose a number: ");
+                edgeIndex--;
+
+                edgeIndex = board.getIndexFromDirection(validEdges.get(edgeIndex));
+
+
+                if(edgeValidity[edgeIndex] != 1  && edgeValidity[edgeIndex] != 2){
+                    List<String> directions= new ArrayList<>();
+
+                    if (edgeIndex == 0 ) {
+                        directions.add("left");
+                        directions.add("right");
+                    }
+                    else if ( edgeIndex == 2){
+                        directions.add("right");
+                        directions.add("left");
+                    }
+                    else{
+                        directions.add("up");
+                        directions.add("down");
+                    }
+
+                    ConsoleController.displayOptions(directions,"Which direction do you want your wall to face?");
+                    direction = Input.getIntInput(1, 2, "Choose a number: ");
+
+                }
+
+                if (edgeValidity[edgeIndex] == 1 || edgeValidity[edgeIndex] == 2){ //is the validity of this edge 1 or 2
+                    board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
+                    tileEdge = board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex];
+                    adjEdge =  placeAdjacentEdge(tileCoord, edgeIndex, edgeValidity[edgeIndex]);
+                }
+                else{
+                    if(edgeIndex == 2 && direction == 1){
+                        placeAdjacentEdge(tileCoord, edgeIndex, 2);
+                    } else if (edgeIndex == 2 && direction == 2) {
+                        placeAdjacentEdge(tileCoord, edgeIndex, 1);
+                    }
+                    else{
+                        placeAdjacentEdge(tileCoord, edgeIndex, direction);
+                    }
+                }
+
+
+                if(!checkIfPawnPathsBlocked ()){
+                    System.out.println("You cannot place a wall that blocks another pawns path to their objective, please try again\n" +
+                            "or input 0 to move your pawn instead");
+                }
+            }
+
+        }
+        while (!checkIfPawnPathsBlocked ());
+        //TODO: check pawn DFS before placement
+
+        if (!exitMethod){
+            board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
+
+            placeWall(tileCoord, edgeValidity, edgeIndex, direction);
+
+
+            System.out.println("Wall has been placed!");
+            wallsPerTeam[p.getTeamNum()] --;
         }
 
+        
+    }
 
-        ConsoleController.displayOptions(validEdges,"Now, please select which side of the tile to place an edge on:");
-        int edgeIndex = Input.getIntInput(1, validEdges.size(), "Choose a number: ");
-            edgeIndex--;
-
-        edgeIndex = board.getIndexFromDirection(validEdges.get(edgeIndex));
-
+    private void placeWall(int[] tileCoord, int[] edgeValidity, int edgeIndex, int direction) {
         if (edgeValidity[edgeIndex] == 1 || edgeValidity[edgeIndex] == 2){ //is the validity of this edge 1 or 2
             board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
             placeAdjacentEdge(tileCoord, edgeIndex, edgeValidity[edgeIndex]);
         }
         else{
-            List<String> directions= new ArrayList<>();
-
-            if (edgeIndex == 0 || edgeIndex == 2) {
-                directions.add("left");
-                directions.add("right");
-            }
-            else{
-                directions.add("up");
-                directions.add("down");
-            }
-
-            
-
-            ConsoleController.displayOptions(directions,"Which direction do you want your wall to face?");
-            int direction = Input.getIntInput(1, 2, "Choose a number: ");
-            //TODO: check pawn DFS before placement
-            board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
-
             if(edgeIndex == 2 && direction == 1){
                 placeAdjacentEdge(tileCoord, edgeIndex, 2);
             } else if (edgeIndex == 2 && direction == 2) {
@@ -235,46 +309,49 @@ public class QuoridorGame extends Game{
             else{
                 placeAdjacentEdge(tileCoord, edgeIndex, direction);
             }
-
-
-
         }
-
-        System.out.println("Wall has been placed!");
-        wallsPerTeam[p.getTeamNum()] --;
     }
 
-    private void placeAdjacentEdge(int[] curBoxCoord, int edgeIndx, int direction){
+    private Edge placeAdjacentEdge(int[] curBoxCoord, int edgeIndx, int direction){
         if (edgeIndx == 0){
             if (direction == 1){ //place to the left
                 board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]-1)[0].isDrawn = true;
+                return  board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]-1)[0];
             }
             else{
                 board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]+1)[0].isDrawn = true;
+                return  board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]+1)[0];
             }
         }
         else if (edgeIndx == 1){
             if (direction == 1){ //place to the left
                 board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[1].isDrawn = true;
+                return board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[1];
             }
             else{
                 board.getBoxEdges(curBoxCoord[0]+1, curBoxCoord[1])[1].isDrawn = true;
+                return board.getBoxEdges(curBoxCoord[0]+1, curBoxCoord[1])[1];
             }
         }
         else if (edgeIndx == 2){
             if (direction == 1){ //place to the left
                 board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]-1)[2].isDrawn = true;
+                return  board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]-1)[2];
             }
             else{
                 board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]+1)[2].isDrawn = true;
+                return board.getBoxEdges(curBoxCoord[0], curBoxCoord[1]+1)[2];
             }
         }
         else{
             if (direction == 1){ //place to the left
-                board.getBoxEdges(curBoxCoord[0]+1, curBoxCoord[1])[3].isDrawn = true;
+                board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[3].isDrawn = true;
+                return board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[3];
+
             }
             else{
-                board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[3].isDrawn = true;
+                board.getBoxEdges(curBoxCoord[0]+1, curBoxCoord[1])[3].isDrawn = true;
+                return  board.getBoxEdges(curBoxCoord[0]+1, curBoxCoord[1])[3];
             }
         }
     }
@@ -283,7 +360,6 @@ public class QuoridorGame extends Game{
 
         List<Edge> undrawnEdges =  board.getUndrawnBoxEdges(x,y, true);
         int[] validEdges =  new int[4];
-        List<String> undrawnEdgesNames = board.getUndrawnBoxEdgeNames(x, y);
         //returns an array of numbers, each number represents how many ways we can place a wall on a certain edge
         // 3 - wall can be placed extending left or right
         // 2 - wall can be places extending right only
@@ -626,27 +702,71 @@ public class QuoridorGame extends Game{
        return adjPawnCoords;
     }
 
-private boolean isDirectionBlockedByPawn (int dir, List<int[]> adjPawnCoords){
-    if (adjPawnCoords == null){
+    private boolean isDirectionBlockedByPawn (int dir, List<int[]> adjPawnCoords){
+        if (adjPawnCoords == null){
+            return false;
+        }
+        for (int[] coords : adjPawnCoords) {
+            if (coords[2] == dir) {
+               return true;
+            }
+        }
         return false;
     }
-    for (int[] coords : adjPawnCoords) {
-        if (coords[2] == dir) {
-           return true;
+
+
+
+    private boolean checkIfPawnPathsBlocked (){
+        int [][] winningLocations = findTeamWinLocations();
+
+        for (int i = 0 ; i< teams.length; i++){
+            int[] coords = Utility.convert1Dto2D(pawnPositions[i], board.getWidth());
+            boolean checkRow = winningLocations[i][1] == 0;
+            if(!board.canReachTarget(coords[0], coords[1], winningLocations[i][0], winningLocations[i][0], checkRow)){
+                return false;
+            };
         }
+
+        return true;
     }
-    return false;
-}
+
+    private int[][] findTeamWinLocations(){
+        //team order: bottom top left right
+
+        //[team number] [row/col number , 0= row, 1=col]
+        int[][] winningLocations = new int [teams.length][2];
+
+        for (int i = 0 ; i< teams.length; i++){
+            if ( i == 0){
+                winningLocations[i][0] = 0; //row 0
+                winningLocations[i][1] = 0;
+            }
+            else if (i == 1){
+                winningLocations[i][0] = board.getHeight()-1; //last row
+                winningLocations[i][1] = 0;
+            }
+            else if (i == 2){
+                winningLocations[i][0] = board.getWidth()-1; //last col
+                winningLocations[i][1] = 1;
+            }
+            else{
+                winningLocations[i][0] = 0; //first col
+                winningLocations[i][1] = 1;
+            }
+
+        }
+        return winningLocations;
+    }
 
 
 
 
+    //TODO:
+    //  1 - complete DFS implementation
+    //  3 - implement play again feature
+    //  4 - implement end of game stats
+    //  6 - wall count display
+    //  7 - change the valid dimensions of the board
+    //  8 - fix wall error
 
-
-    //Moves:
-        //make edges behind walls/beyond board limit  (cases 2 & 3) //TODO: Abdel
-        //pawn must be able to DFS to destination row / col
-        //pawn can jump over other pawn to reach tile (case 6)
-            //function to get tiles adj to a pawn
-        //
 }
