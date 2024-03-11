@@ -24,7 +24,7 @@ public class ConsoleController {
         List<String> gameTypes = GameFactory.gameTypes;
 
         displayOptions(gameTypes, "Please choose a game to play:");
-        System.out.println("- Enter 'quit'/'q' to quit.");
+        System.out.println("- Enter 'quit'/'q' to quit. You can hit 'q' at any point during the game and it will bring you back here.");
 
         int choice = Input.getIntInput(1, gameTypes.size(), "main menu");
         if (choice != -1){
@@ -70,9 +70,11 @@ public class ConsoleController {
                             maxMovesId = t;
                         }
                     }
-                    System.out.println("Before you go, lets have a look at some statistics:");
-                    System.out.println("    -Team: " + maxWinsId.getTeamName() + " has won the most games with " + maxNumWins + " games won!");
-                    System.out.println("    -Team: " + maxMovesId.getTeamName() + " was the most active team, with " + maxMovesMade + " moves made in all games played!");
+                    if (g.getGameName().equals("Dots and Boxes")) {
+                        System.out.println("Before you go, lets have a look at some statistics:");
+                        System.out.println("    -Team: " + maxWinsId.getTeamName() + " has won the most games with " + maxNumWins + " games won!");
+                        System.out.println("    -Team: " + maxMovesId.getTeamName() + " was the most active team, with " + maxMovesMade + " moves made in all games played!");
+                    }
                 }
                 inputCon = false;
             }
@@ -92,6 +94,7 @@ public class ConsoleController {
 
             g.createValidBoardState(difficulty);
             System.out.println("Here is your new " + g.getGameName() + " game: \n" );
+
             g.render();
             g.start();
         }
@@ -107,6 +110,15 @@ public class ConsoleController {
 
         width = Input.getIntInput(SlidingPuzzleGame.minSize, SlidingPuzzleGame.maxSize, "Enter the board width:");
         height = Input.getIntInput(SlidingPuzzleGame.minSize, SlidingPuzzleGame.maxSize, "Enter the board height:");
+
+        return new int[]{width, height};
+    }
+
+    public static int[] inputBoardDim(Game g) {
+        int width = 0, height = 0;
+
+        width = Input.getIntInput(4, 15, "Enter the board width:");
+        height = Input.getIntInput(4, 15, "Enter the board height:");
 
         return new int[]{width, height};
     }

@@ -1,5 +1,12 @@
 import java.util.*;
 
+/**
+ * Implements the game logic for Quoridor, managing game setup, player turns, etc.
+ * It extends the Game class, utilizing teams and a game board to facilitate player interactions,
+ * edge drawing, with methods to start, update, and end the game.
+ *
+ */
+
 public class QuoridorGame extends Game{
 
     public final String gameName = "Quoridor";
@@ -17,6 +24,10 @@ public class QuoridorGame extends Game{
     }
 
     @Override
+    /**
+     * Initializes and starts the game.
+     *
+     */
     void initialize() {
         System.out.println("Welcome to Quoridor! The goal of this game is to get to your opponent's side\n" +
                 "before your opponent gets to your side!");
@@ -47,6 +58,10 @@ public class QuoridorGame extends Game{
         start();
     }
 
+    /**
+     * Sets the pawn starting positions based on the team number
+     * @param teamNumber
+     */
     void setPawnStartingPosition(int teamNumber) {
         if (teamNumber == 0){
             pawnPositions[teamNumber] = (board.getHeight() * board.getWidth()) -  (board.getWidth() / 2);
@@ -70,12 +85,15 @@ public class QuoridorGame extends Game{
 
     @Override
     void createValidBoardState(Difficulty d) {
-        int[] dims = ConsoleController.inputBoardDim();
+        int[] dims = ConsoleController.inputBoardDim(this);
         board = new BoardWithEdges(dims[0],dims[1]);
         this.board.numberBoardTiles();
     }
 
     @Override
+    /**
+     * Implements the main Quoridor game loop
+     */
     void start() {
         Random firstStart = new Random();
         int randomInt = firstStart.nextInt(teams.length);
@@ -119,7 +137,7 @@ public class QuoridorGame extends Game{
 
     void end(Player p){
         System.out.println("Congratulations team " + Utility.colorString(teams[p.getTeamNum()].getTeamName(), p.getTeamNum()) + " you have won!");
-
+        ConsoleController.playAgain(teams, this);
     }
 
     @Override
@@ -132,9 +150,14 @@ public class QuoridorGame extends Game{
         return false;
     }
 
+    /**
+     * Overrieds the win condition method because we want to check
+     * which team reached their goal
+     * @param teamNum
+     */
     boolean checkWinCondition(int teamNum) {
         int pos = Utility.convert1Dto2D(pawnPositions[teamNum], board.getWidth())[0];
-        if (teamNum == 0 &&  pos == 0) {
+        if (teamNum == 0 && pos == 0) {
             return true;
         }
         if (teamNum == 1 && pos == board.getHeight() - 1) {
@@ -176,6 +199,10 @@ public class QuoridorGame extends Game{
         return 0;
     }
 
+    /**
+     * gives the user an option to either move their pawn or place a wall
+     * @param p
+     */
     private int movePawnOrPlaceWall (Player p){
         List<String> options = new ArrayList<>();
         options.add("Move Pawn");
@@ -191,8 +218,11 @@ public class QuoridorGame extends Game{
 
     }
 
+    /**
+     * asks the user where they want to place their wall
+     * @param p
+     */
     private void getWallInfo(Player p){
-        //goodluck figuring this one out kevin
 
         int[] tileCoord = new int[0];
         int[] edgeValidity = new int[0];
@@ -280,7 +310,6 @@ public class QuoridorGame extends Game{
 
         }
         while (!checkIfPawnPathsBlocked ());
-        //TODO: check pawn DFS before placement
 
         if (!exitMethod){
             board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
@@ -295,6 +324,13 @@ public class QuoridorGame extends Game{
         
     }
 
+    /**
+     * places wall based on the user's decision
+     * @param tileCoord
+     * @param edgeValidity
+     * @param edgeIndex
+     * @param direction
+     */
     private void placeWall(int[] tileCoord, int[] edgeValidity, int edgeIndex, int direction) {
         if (edgeValidity[edgeIndex] == 1 || edgeValidity[edgeIndex] == 2){ //is the validity of this edge 1 or 2
             board.getBoxEdges(tileCoord[0],tileCoord[1])[edgeIndex].isDrawn = true;
@@ -312,6 +348,14 @@ public class QuoridorGame extends Game{
         }
     }
 
+    /**
+     * places the necessary adjacent edge to a wall since a wall should
+     * cover 2 edges
+     * @param curBoxCoord
+     * @param edgeIndx
+     * @param direction
+     * @return
+     */
     private Edge placeAdjacentEdge(int[] curBoxCoord, int edgeIndx, int direction){
         if (edgeIndx == 0){
             if (direction == 1){ //place to the left
@@ -345,18 +389,31 @@ public class QuoridorGame extends Game{
         }
         else{
             if (direction == 1){ //place to the left
-                board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[3].isDrawn = true;
-                return board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[3];
+                if (curBoxCoord[0] == 0) {
+                    board.getBoxEdges(curBoxCoord[0] + 1, curBoxCoord[1])[3].isDrawn = true;
+                    return board.getBoxEdges(curBoxCoord[0] + 1, curBoxCoord[1])[3];
+                }
+                else{
+                    board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[3].isDrawn = true;
+                    return board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[3];
+                }
+
 
             }
             else{
-                board.getBoxEdges(curBoxCoord[0]+1, curBoxCoord[1])[3].isDrawn = true;
-                return  board.getBoxEdges(curBoxCoord[0]+1, curBoxCoord[1])[3];
+                board.getBoxEdges(curBoxCoord[0]-1, curBoxCoord[1])[3].isDrawn = true;
+                return  board.getBoxEdges(curBoxCoord[0] - 1, curBoxCoord[1])[3];
             }
         }
     }
 
-    private int[] getValidEdges(int x, int y){ //TODO: too much repeated code, function can be shortened w/ 2 helpers
+    /**
+     * determines which edges are valid to place a wall on
+     * @param x
+     * @param y
+     * @return
+     */
+    private int[] getValidEdges(int x, int y){
 
         List<Edge> undrawnEdges =  board.getUndrawnBoxEdges(x,y, true);
         int[] validEdges =  new int[4];
@@ -486,6 +543,12 @@ public class QuoridorGame extends Game{
         System.out.println("Your pawn has succesfully moved to tile: "+ choice);
     }
 
+    /**
+     * Checks if the basic pawn movements are possible(no jumps)
+     * @param pawnPos
+     * @param teamNum
+     * @return
+     */
     private List<Integer> checkIfBasicMovesPossible(int pawnPos, int teamNum){
         List<Integer> validMoveTiles = new ArrayList<>();
         //first check if movement options are out of bounds
@@ -526,6 +589,13 @@ public class QuoridorGame extends Game{
         return validMoveTiles;
     }
 
+    /**
+     * Checks which jumps are possible
+     * @param adjPawnCoordDir
+     * @param pawnPos
+     * @param teamNum
+     * @return
+     */
     private List<Integer> getSpecialValidTiles(List<int[]> adjPawnCoordDir, int pawnPos, int teamNum) {
         List<Integer> specialValidTiles = new ArrayList<>();
         // Get pawn coordinates
@@ -762,11 +832,7 @@ public class QuoridorGame extends Game{
 
 
     //TODO:
-    //  1 - complete DFS implementation
-    //  3 - implement play again feature
-    //  4 - implement end of game stats
     //  6 - wall count display
     //  7 - change the valid dimensions of the board
-    //  8 - fix wall error
 
 }
